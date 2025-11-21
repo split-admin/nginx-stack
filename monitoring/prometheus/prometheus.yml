@@ -1,0 +1,35 @@
+# monitoring/prometheus/prometheus.yml
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  scrape_timeout: 10s
+
+# (Opcional) ficheros con reglas de alertas
+rule_files:
+  # - "alerting_rules.yml"
+
+scrape_configs:
+  # Prometheus itself
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # Postgres exporter
+  - job_name: "postgres_exporter"
+    static_configs:
+      - targets: ["postgres_exporter:9187"]
+    metrics_path: /metrics
+    # labels útiles para filtrar en queries
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+
+  # Docker internal (si en el futuro añades cadvisor / node exporters)
+  # - job_name: "cadvisor"
+  #   static_configs:
+  #     - targets: ["cadvisor:8080"]
+
+  # Si quisieras scrapear otros servicios por nombre de servicio:
+  # - job_name: "my_service"
+  #   static_configs:
+  #     - targets: ["myservice:metricsport"]
