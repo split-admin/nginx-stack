@@ -6,8 +6,6 @@ services:
     image: jwilder/nginx-proxy
     container_name: nginx-proxy
     restart: unless-stopped
-    environment:
-      - DEFAULT_HOST=edenahealth.ink
     ports:
       - "80:80"
       - "443:443"
@@ -18,6 +16,23 @@ services:
       - ./html:/usr/share/nginx/html
     networks:
       - mi_signes_networks
+
+  letsencrypt:
+    image: nginxproxy/acme-companion
+    container_name: nginx-letsencrypt
+    restart: unless-stopped
+    environment:
+      - DEFAULT_EMAIL=pllsolutiontech@outlook.es
+      - NGINX_PROXY_CONTAINER=nginx-proxy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./certs:/etc/nginx/certs
+      - ./vhost:/etc/nginx/vhost.d
+      - ./html:/usr/share/nginx/html
+    networks:
+      - mi_signes_networks
+    depends_on:
+      - nginx-proxy
 
   prometheus:
     image: prom/prometheus
@@ -31,6 +46,8 @@ services:
     environment:
       - VIRTUAL_HOST=edenahealth.ink
       - VIRTUAL_PATH=/prometheus
+      - LETSENCRYPT_HOST=edenahealth.ink
+      - LETSENCRYPT_EMAIL=pllsolutiontech@outlook.es
       - VIRTUAL_PORT=9090
 
   grafana:
@@ -44,6 +61,8 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=admin123
       - VIRTUAL_HOST=edenahealth.ink
       - VIRTUAL_PATH=/grafana
+      - LETSENCRYPT_HOST=edenahealth.ink
+      - LETSENCRYPT_EMAIL=pllsolutiontech@outlook.es
       - VIRTUAL_PORT=3000
     volumes:
       - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
