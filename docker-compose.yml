@@ -19,6 +19,23 @@ services:
     networks:
       - mi_signes_networks
 
+  letsencrypt:
+    image: nginxproxy/acme-companion
+    container_name: nginx-letsencrypt
+    restart: unless-stopped
+    environment:
+      - DEFAULT_EMAIL=pllsolutiontech@outlook.es
+      - NGINX_PROXY_CONTAINER=nginx-proxy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./certs:/etc/nginx/certs
+      - ./vhost:/etc/nginx/vhost.d
+      - ./html:/usr/share/nginx/html
+    networks:
+      - mi_signes_networks
+    depends_on:
+      - nginx-proxy
+
   prometheus:
     image: prom/prometheus
     container_name: prometheus
@@ -29,7 +46,7 @@ services:
     networks:
       - mi_signes_networks
     environment:
-      - VIRTUAL_HOST=edenahealth.ink
+      - VIRTUAL_HOST=dev-edenahealth.ink
       - VIRTUAL_PATH=/prometheus
       - VIRTUAL_PORT=9090
 
@@ -42,7 +59,7 @@ services:
       - GF_SERVER_SERVE_FROM_SUB_PATH=true
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin123
-      - VIRTUAL_HOST=edenahealth.ink
+      - VIRTUAL_HOST=dev-edenahealth.ink
       - VIRTUAL_PATH=/grafana
       - VIRTUAL_PORT=3000
     volumes:
